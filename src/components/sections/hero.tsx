@@ -244,7 +244,7 @@ const HeroSection = () => {
         {/* Right side - Exchange Widget */}
         <div className="w-full lg:w-[50%] relative flex items-center justify-center">
           {/* Static floating badges - no continuous animations */}
-          <div className="absolute -top-4 sm:top-0 left-0 sm:left-4 z-30 ios-card-elevated hidden sm:block">
+          <div className="absolute -top-8 sm:-top-6 -left-4 sm:-left-8 z-30 ios-card-elevated hidden sm:block">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-yellow-50 flex items-center justify-center text-yellow-600 border border-yellow-100">
                 <Zap className="w-4.5 h-4.5" />
@@ -256,7 +256,7 @@ const HeroSection = () => {
             </div>
           </div>
 
-          <div className="absolute -bottom-4 sm:bottom-4 right-0 sm:right-4 z-30 ios-card-elevated hidden sm:block">
+          <div className="absolute -bottom-8 sm:-bottom-6 -right-4 sm:-right-8 z-30 ios-card-elevated hidden sm:block">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/15">
                 <ShieldCheck className="w-4.5 h-4.5" />
@@ -268,7 +268,7 @@ const HeroSection = () => {
             </div>
           </div>
 
-          <div className="absolute top-1/2 -translate-y-1/2 -left-8 z-30 ios-card-elevated hidden xl:block">
+          <div className="absolute top-1/2 -translate-y-1/2 -left-12 z-30 ios-card-elevated hidden xl:block">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100">
                 <Globe className="w-4.5 h-4.5" />
@@ -280,7 +280,7 @@ const HeroSection = () => {
             </div>
           </div>
 
-          <div className="absolute top-8 -right-4 z-30 ios-card-elevated hidden xl:block">
+          <div className="absolute top-4 -right-8 z-30 ios-card-elevated hidden xl:block">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100">
                 <Clock className="w-4.5 h-4.5" />
