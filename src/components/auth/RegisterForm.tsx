@@ -12,10 +12,90 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Eye, EyeOff, Mail, User, Lock, CheckCircle2, Shield, Zap, Globe2, UserPlus, Gift, Loader2, ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Mail, User, Lock, CheckCircle2, Shield, Zap, Globe2, UserPlus, Gift, Loader2, ArrowRight, ArrowLeft, Sparkles, Building2, IdCard } from "lucide-react";
 import http from "@/lib/http";
 import { setTokens } from "@/lib/token";
 import { toast } from "sonner";
+
+// CPF/CNPJ validation functions
+function validateCPF(cpf: string): boolean {
+    const cleanCPF = cpf.replace(/\D/g, '');
+    if (cleanCPF.length !== 11) return false;
+    if (/^(\d)\1{10}$/.test(cleanCPF)) return false;
+
+    let sum = 0;
+    for (let i = 0; i < 9; i++) {
+        sum += parseInt(cleanCPF.charAt(i)) * (10 - i);
+    }
+    let checkDigit1 = 11 - (sum % 11);
+    if (checkDigit1 >= 10) checkDigit1 = 0;
+    if (checkDigit1 !== parseInt(cleanCPF.charAt(9))) return false;
+
+    sum = 0;
+    for (let i = 0; i < 10; i++) {
+        sum += parseInt(cleanCPF.charAt(i)) * (11 - i);
+    }
+    let checkDigit2 = 11 - (sum % 11);
+    if (checkDigit2 >= 10) checkDigit2 = 0;
+    if (checkDigit2 !== parseInt(cleanCPF.charAt(10))) return false;
+
+    return true;
+}
+
+function validateCNPJ(cnpj: string): boolean {
+    const cleanCNPJ = cnpj.replace(/\D/g, '');
+    if (cleanCNPJ.length !== 14) return false;
+    if (/^(\d)\1{13}$/.test(cleanCNPJ)) return false;
+
+    let length = cleanCNPJ.length - 2;
+    let numbers = cleanCNPJ.substring(0, length);
+    const digits = cleanCNPJ.substring(length);
+    let sum = 0;
+    let pos = length - 7;
+
+    for (let i = length; i >= 1; i--) {
+        sum += parseInt(numbers.charAt(length - i)) * pos--;
+        if (pos < 2) pos = 9;
+    }
+
+    let result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+    if (result !== parseInt(digits.charAt(0))) return false;
+
+    length = length + 1;
+    numbers = cleanCNPJ.substring(0, length);
+    sum = 0;
+    pos = length - 7;
+
+    for (let i = length; i >= 1; i--) {
+        sum += parseInt(numbers.charAt(length - i)) * pos--;
+        if (pos < 2) pos = 9;
+    }
+
+    result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+    if (result !== parseInt(digits.charAt(1))) return false;
+
+    return true;
+}
+
+// Formatting functions
+function formatCPF(value: string): string {
+    const clean = value.replace(/\D/g, '');
+    const limited = clean.slice(0, 11);
+    if (limited.length <= 3) return limited;
+    if (limited.length <= 6) return `${limited.slice(0, 3)}.${limited.slice(3)}`;
+    if (limited.length <= 9) return `${limited.slice(0, 3)}.${limited.slice(3, 6)}.${limited.slice(6)}`;
+    return `${limited.slice(0, 3)}.${limited.slice(3, 6)}.${limited.slice(6, 9)}-${limited.slice(9)}`;
+}
+
+function formatCNPJ(value: string): string {
+    const clean = value.replace(/\D/g, '');
+    const limited = clean.slice(0, 14);
+    if (limited.length <= 2) return limited;
+    if (limited.length <= 5) return `${limited.slice(0, 2)}.${limited.slice(2)}`;
+    if (limited.length <= 8) return `${limited.slice(0, 2)}.${limited.slice(2, 5)}.${limited.slice(5)}`;
+    if (limited.length <= 12) return `${limited.slice(0, 2)}.${limited.slice(2, 5)}.${limited.slice(5, 8)}/${limited.slice(8)}`;
+    return `${limited.slice(0, 2)}.${limited.slice(2, 5)}.${limited.slice(5, 8)}/${limited.slice(8, 12)}-${limited.slice(12)}`;
+}
 
 const schema = z
     .object({
@@ -23,12 +103,33 @@ const schema = z
         email: z.string().email("E-mail inválido").transform((v) => v.trim().toLowerCase()),
         password: z.string().min(8, "Mínimo 8 caracteres"),
         confirm: z.string().min(8, "Confirme sua senha"),
+        customerType: z.enum(["PF", "PJ"], { message: "Selecione o tipo de cadastro" }),
+        cpf: z.string().optional(),
+        cnpj: z.string().optional(),
         affiliateCode: z.string().optional().transform((v) => v?.trim().toUpperCase() || undefined),
         accept: z.literal(true, { message: "Aceite os termos para continuar" }),
     })
     .refine((v) => v.password === v.confirm, {
         message: "As senhas não conferem",
         path: ["confirm"],
+    })
+    .refine((v) => {
+        if (v.customerType === "PF" && v.cpf) {
+            return validateCPF(v.cpf);
+        }
+        return true;
+    }, {
+        message: "CPF inválido",
+        path: ["cpf"],
+    })
+    .refine((v) => {
+        if (v.customerType === "PJ" && v.cnpj) {
+            return validateCNPJ(v.cnpj);
+        }
+        return true;
+    }, {
+        message: "CNPJ inválido",
+        path: ["cnpj"],
     });
 
 type FormValues = z.infer<typeof schema>;
@@ -53,7 +154,6 @@ function getHttpStatus(e: unknown): number {
 
 function getHttpMessage(e: unknown, fallback = "Falha no cadastro"): string {
     if (e && typeof e === "object") {
-        // Primeiro verifica se o axios já processou e colocou uma mensagem amigável no interceptor
         if ("message" in e && typeof (e as any).message === "string" && (e as any).message.includes("conectar ao servidor")) {
             return (e as any).message;
         }
@@ -94,13 +194,26 @@ function RegisterPageInner(): React.JSX.Element {
 
     const form = useForm<FormValues>({
         resolver,
-        defaultValues: { name: "", email: "", password: "", confirm: "", affiliateCode: "", accept: true },
+        defaultValues: {
+            name: "",
+            email: "",
+            password: "",
+            confirm: "",
+            customerType: "PF",
+            cpf: "",
+            cnpj: "",
+            affiliateCode: "",
+            accept: true
+        },
     });
 
     const [showAffiliateField, setShowAffiliateField] = React.useState(false);
     const [validatingCode, setValidatingCode] = React.useState(false);
     const [codeValid, setCodeValid] = React.useState<boolean | null>(null);
     const affiliateCode = form.watch("affiliateCode") || "";
+    const customerType = form.watch("customerType");
+    const cpfValue = form.watch("cpf") || "";
+    const cnpjValue = form.watch("cnpj") || "";
 
     const validateAffiliateCode = React.useCallback(async (code: string) => {
         if (!code || code.length < 3) {
@@ -137,13 +250,27 @@ function RegisterPageInner(): React.JSX.Element {
         try {
             setLoading(true);
 
+            const payload: any = {
+                email: v.email,
+                password: v.password,
+                name: v.name,
+                type: v.customerType,
+            };
+
+            // Add document based on type
+            if (v.customerType === "PF" && v.cpf) {
+                payload.cpf = v.cpf.replace(/\D/g, '');
+            } else if (v.customerType === "PJ" && v.cnpj) {
+                payload.cnpj = v.cnpj.replace(/\D/g, '');
+            }
+
+            if (v.affiliateCode && codeValid) {
+                payload.affiliateCode = v.affiliateCode;
+            }
+
             const res = await http.post<{ access_token: string; role?: string }>(
                 "/auth/register",
-                { 
-                    email: v.email, 
-                    password: v.password,
-                    ...(v.affiliateCode && codeValid ? { affiliateCode: v.affiliateCode } : {})
-                },
+                payload,
                 {}
             );
 
@@ -156,7 +283,7 @@ function RegisterPageInner(): React.JSX.Element {
                 "SameSite=Lax",
             ].join("; ");
 
-            toast.success("Conta criada! Bem-vindo(a).");
+            toast.success("Conta criada! Bem-vindo(a). KYC LEVEL 1 ativado!");
             router.replace("/customer/dashboard");
         } catch (e: unknown) {
             const status = getHttpStatus(e);
@@ -165,7 +292,16 @@ function RegisterPageInner(): React.JSX.Element {
                 form.setError("email", { message: "Este e-mail já está em uso" });
                 toast.error("Este e-mail já está em uso.");
             } else if (status === 400) {
-                toast.error("Dados inválidos. Verifique as informações.");
+                const msg = getHttpMessage(e);
+                if (msg.includes("cpf")) {
+                    form.setError("cpf", { message: "CPF inválido ou já cadastrado" });
+                    toast.error("CPF inválido ou já cadastrado");
+                } else if (msg.includes("cnpj")) {
+                    form.setError("cnpj", { message: "CNPJ inválido ou já cadastrado" });
+                    toast.error("CNPJ inválido ou já cadastrado");
+                } else {
+                    toast.error("Dados inválidos. Verifique as informações.");
+                }
             } else {
                 toast.error(getHttpMessage(e, "Falha no cadastro"));
             }
@@ -208,30 +344,30 @@ function RegisterPageInner(): React.JSX.Element {
                         <div>
                             <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-primary/5 border border-primary/10 px-4 py-1.5 text-sm font-black text-primary">
                                 <Sparkles className="h-4 w-4" />
-                                Comece gratis
+                                KYC Automatico
                             </div>
                             <h1 className="text-4xl font-black text-slate-900 xl:text-5xl tracking-tightest">
                                 Crie sua conta
                                 <br />
                                 <span className="text-primary">
-                                    em segundos
+                                    com KYC LEVEL 1
                                 </span>
                             </h1>
                             <p className="mt-4 text-lg text-slate-500 font-medium">
-                                Acesso completo a plataforma de operacoes OTC e cambio BRL ↔ USDT com as melhores taxas.
+                                Cadastre-se com CPF ou CNPJ e ganhe automaticamente LEVEL 1 KYC (R$ 30k-50k/mes).
                             </p>
                         </div>
 
                         <div className="space-y-4">
                             <FeatureItem
                                 icon={<CheckCircle2 className="h-5 w-5 text-emerald-500" />}
-                                title="Verificacao rapida"
-                                desc="KYC simplificado em minutos"
+                                title="KYC LEVEL 1 automatico"
+                                desc="Valide seu documento e comece a operar"
                             />
                             <FeatureItem
                                 icon={<Zap className="h-5 w-5 text-yellow-500" />}
-                                title="Taxas competitivas"
-                                desc="A partir de 3% de spread"
+                                title="Limites progressivos"
+                                desc="Upgrade para LEVEL 2 e 3 quando precisar"
                             />
                             <FeatureItem
                                 icon={<Globe2 className="h-5 w-5 text-primary" />}
@@ -244,23 +380,128 @@ function RegisterPageInner(): React.JSX.Element {
                     <div className="w-full lg:flex-1 lg:max-w-md">
                         <Card className="overflow-hidden rounded-[2.5rem] border-white/40 rich-glass">
                             <CardHeader className="space-y-3 border-b border-black/[0.03] pb-6">
-<div className="mx-auto flex h-14 w-14 items-center justify-center overflow-hidden">
-                                      <img 
-                                          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/project-uploads/8dca9fc2-17fe-42a1-b323-5e4a298d9904/Untitled-1769589355434.png?width=8000&height=8000&resize=contain" 
-                                          alt="Otsem Pay"
-                                          className="h-full w-full object-contain"
-                                      />
-                                  </div>
+                                <div className="mx-auto flex h-14 w-14 items-center justify-center overflow-hidden">
+                                    <img
+                                        src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/project-uploads/8dca9fc2-17fe-42a1-b323-5e4a298d9904/Untitled-1769589355434.png?width=8000&height=8000&resize=contain"
+                                        alt="Otsem Pay"
+                                        className="h-full w-full object-contain"
+                                    />
+                                </div>
                                 <CardTitle className="text-center text-2xl font-black text-slate-900">
                                     Criar conta
                                 </CardTitle>
                                 <p className="text-center text-sm text-slate-500 font-medium">
-                                    Preencha os dados abaixo para comecar
+                                    Preencha os dados para comecar
                                 </p>
                             </CardHeader>
 
                             <CardContent className="p-6 sm:p-8">
                                 <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4" noValidate>
+
+                                    {/* Customer Type Selection */}
+                                    <div className="grid gap-2">
+                                        <Label className="text-sm font-black text-slate-900">
+                                            Tipo de cadastro
+                                        </Label>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <label className={`flex items-center gap-3 rounded-2xl border p-4 cursor-pointer transition ${
+                                                customerType === "PF"
+                                                    ? "border-primary bg-primary/5"
+                                                    : "border-black/[0.05] bg-white/60 hover:bg-white/80"
+                                            }`}>
+                                                <input
+                                                    type="radio"
+                                                    value="PF"
+                                                    className="h-4 w-4 text-primary focus:ring-2 focus:ring-primary/20"
+                                                    {...form.register("customerType")}
+                                                />
+                                                <div className="flex items-center gap-2">
+                                                    <User className="h-4 w-4 text-primary" />
+                                                    <span className="text-sm font-bold text-slate-900">
+                                                        Pessoa Física
+                                                    </span>
+                                                </div>
+                                            </label>
+                                            <label className={`flex items-center gap-3 rounded-2xl border p-4 cursor-pointer transition ${
+                                                customerType === "PJ"
+                                                    ? "border-primary bg-primary/5"
+                                                    : "border-black/[0.05] bg-white/60 hover:bg-white/80"
+                                            }`}>
+                                                <input
+                                                    type="radio"
+                                                    value="PJ"
+                                                    className="h-4 w-4 text-primary focus:ring-2 focus:ring-primary/20"
+                                                    {...form.register("customerType")}
+                                                />
+                                                <div className="flex items-center gap-2">
+                                                    <Building2 className="h-4 w-4 text-primary" />
+                                                    <span className="text-sm font-bold text-slate-900">
+                                                        Pessoa Jurídica
+                                                    </span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                        {form.formState.errors.customerType && (
+                                            <p className="text-xs text-red-500 font-medium">{form.formState.errors.customerType.message}</p>
+                                        )}
+                                    </div>
+
+                                    {/* CPF Field (only for PF) */}
+                                    {customerType === "PF" && (
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="cpf" className="text-sm font-black text-slate-900">
+                                                CPF <span className="text-emerald-500">(obter LEVEL 1)</span>
+                                            </Label>
+                                            <div className="relative">
+                                                <IdCard className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                                                <Input
+                                                    id="cpf"
+                                                    className="h-12 rounded-2xl border-black/[0.05] bg-white/60 pl-10 text-slate-900 placeholder:text-slate-500 transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                                    placeholder="000.000.000-00"
+                                                    value={cpfValue}
+                                                    onChange={(e) => {
+                                                        const formatted = formatCPF(e.target.value);
+                                                        form.setValue("cpf", formatted);
+                                                    }}
+                                                />
+                                            </div>
+                                            {form.formState.errors.cpf && (
+                                                <p className="text-xs text-red-500 font-medium">{form.formState.errors.cpf.message}</p>
+                                            )}
+                                            <p className="text-xs text-slate-500 font-medium">
+                                                CPF valido = R$ 30k/mes automaticamente
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* CNPJ Field (only for PJ) */}
+                                    {customerType === "PJ" && (
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="cnpj" className="text-sm font-black text-slate-900">
+                                                CNPJ <span className="text-emerald-500">(obter LEVEL 1)</span>
+                                            </Label>
+                                            <div className="relative">
+                                                <Building2 className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                                                <Input
+                                                    id="cnpj"
+                                                    className="h-12 rounded-2xl border-black/[0.05] bg-white/60 pl-10 text-slate-900 placeholder:text-slate-500 transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                                    placeholder="00.000.000/0000-00"
+                                                    value={cnpjValue}
+                                                    onChange={(e) => {
+                                                        const formatted = formatCNPJ(e.target.value);
+                                                        form.setValue("cnpj", formatted);
+                                                    }}
+                                                />
+                                            </div>
+                                            {form.formState.errors.cnpj && (
+                                                <p className="text-xs text-red-500 font-medium">{form.formState.errors.cnpj.message}</p>
+                                            )}
+                                            <p className="text-xs text-slate-500 font-medium">
+                                                CNPJ valido = R$ 50k/mes automaticamente
+                                            </p>
+                                        </div>
+                                    )}
+
                                     <div className="grid gap-2">
                                         <Label htmlFor="name" className="text-sm font-black text-slate-900">
                                             Nome completo
@@ -455,7 +696,7 @@ function RegisterPageInner(): React.JSX.Element {
                                         className="btn-premium h-12 rounded-2xl font-black text-base disabled:opacity-50"
                                         aria-busy={loading}
                                     >
-                                        {loading ? 'Criando conta...' : 'Criar conta'}
+                                        {loading ? 'Criando conta...' : 'Criar conta com KYC LEVEL 1'}
                                         {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
                                     </motion.button>
 
@@ -481,7 +722,7 @@ function RegisterPageInner(): React.JSX.Element {
                             </div>
                             <div className="flex items-center gap-1.5">
                                 <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-                                SSL/TLS
+                                KYC automatico
                             </div>
                         </div>
                     </div>
