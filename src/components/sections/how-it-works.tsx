@@ -36,7 +36,7 @@ const HowItWorks = () => {
             <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             Fluxo Inteligente
           </div>
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tightest text-slate-900 leading-[1.1]">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tightest text-slate-900 leading-[1.1]">
             Como funciona <br />
             <span className="text-primary">o ecossistema.</span>
           </h2>

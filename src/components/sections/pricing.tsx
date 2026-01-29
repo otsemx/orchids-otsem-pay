@@ -52,7 +52,7 @@ const Pricing = () => {
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/8 border border-primary/12 text-primary font-semibold text-[9px] sm:text-[10px] uppercase tracking-[0.15em] mb-4">
             Preços Claros
           </div>
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tightest text-slate-900">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tightest text-slate-900">
             Taxas transparentes
           </h2>
           <p className="mx-auto mt-2 max-w-md text-[13px] sm:text-[14px] text-slate-600 font-medium leading-relaxed">
