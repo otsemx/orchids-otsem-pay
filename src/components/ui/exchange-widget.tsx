@@ -13,11 +13,13 @@ const ExchangeWidget = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [direction, setDirection] = useState<"buy" | "sell">("buy");
   const [showAuthScreen, setShowAuthScreen] = useState(false);
+  const [countdown, setCountdown] = useState(30);
   const prevRateRef = useRef(rate);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const { user } = useAuth();
 
+  // Fetch rate from OKX API
   useEffect(() => {
     const fetchRate = async () => {
       try {
@@ -25,9 +27,10 @@ const ExchangeWidget = () => {
         const data = await response.json();
         if (data.code === "0" && data.data?.[0]?.last) {
           const baseRate = parseFloat(data.data[0].last);
-          const newRate = baseRate * 1.0098;
+          const newRate = baseRate * 1.0098; // Apply spread
           prevRateRef.current = newRate;
           setRate(newRate);
+          setCountdown(30); // Reset countdown when rate updates
         }
       } catch (error) {
         console.error("Failed to fetch OKX rate:", error);
@@ -37,28 +40,60 @@ const ExchangeWidget = () => {
     };
 
     fetchRate();
-    const interval = setInterval(fetchRate, 15000);
+    const interval = setInterval(fetchRate, 30000); // Fetch every 30 seconds
     return () => clearInterval(interval);
   }, []);
 
-  const numericAmount = parseFloat(amount.replace(/[^\d.]/g, "")) || 0;
+  // Countdown timer that ticks every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          return 30; // Reset to 30 when it reaches 0
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const numericAmount = parseFloat(amount) || 0;
   const convertedAmount = direction === "buy" ? numericAmount / rate : numericAmount * rate;
 
-  const formatBRL = (value: string) => {
-    const num = value.replace(/[^\d]/g, "");
-    if (!num) return "";
-    const formatted = (parseInt(num) / 100).toLocaleString("pt-BR", {
+  const formatBRL = (value: number): string => {
+    return value.toLocaleString("pt-BR", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
-    return formatted;
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/[^\d]/g, "");
-    if (raw.length <= 10) {
-      setAmount(raw ? (parseInt(raw) / 100).toString() : "");
+    const value = e.target.value;
+
+    // Remove all non-numeric characters except dots and commas
+    const cleaned = value.replace(/[^\d.,]/g, '');
+
+    // Replace comma with dot for decimal
+    const normalized = cleaned.replace(',', '.');
+
+    // Ensure only one decimal point
+    const parts = normalized.split('.');
+    if (parts.length > 2) {
+      return; // Ignore if more than one decimal point
     }
+
+    // Limit to 2 decimal places
+    if (parts[1] && parts[1].length > 2) {
+      return;
+    }
+
+    // Limit total length to prevent huge numbers
+    if (normalized.replace('.', '').length > 12) {
+      return;
+    }
+
+    setAmount(normalized);
   };
 
   const toggleDirection = () => {
@@ -92,23 +127,23 @@ const ExchangeWidget = () => {
         {/* Simplified outer glow - static */}
         <div className="absolute -inset-[2px] bg-gradient-to-br from-primary/30 via-primary/20 to-emerald-400/15 rounded-[32px] blur-xl opacity-40" />
         <div className="absolute -inset-1 bg-gradient-to-r from-primary/15 via-primary/10 to-primary/15 rounded-[30px] opacity-70" />
-        
+
         {/* Main card */}
         <div className="relative bg-white rounded-[28px] overflow-hidden shadow-2xl shadow-primary/10 border border-slate-100">
           {/* Static gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-slate-50/80 via-white to-primary/[0.02] pointer-events-none" />
-          
+
           {/* Static decorative elements */}
           <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-primary/8 to-primary/5 blur-3xl rounded-full translate-x-10 -translate-y-10 pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/8 to-primary/5 blur-3xl rounded-full -translate-x-10 translate-y-10 pointer-events-none" />
-          
+
           <div className="relative p-6 sm:p-7">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="relative">
-<div className="w-11 h-11 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
-                        <Globe className="w-5 h-5 text-white" />
+                    <div className="w-11 h-11 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
+                      <Globe className="w-5 h-5 text-white" />
                     </div>
                     <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-emerald-400 rounded-full border-2 border-white flex items-center justify-center">
                       <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
@@ -127,7 +162,7 @@ const ExchangeWidget = () => {
               </div>
             </div>
 
-            {/* Exchange rate banner */}
+            {/* Exchange rate banner with countdown */}
             <div className="flex items-center justify-between px-4 py-3 mb-5 rounded-2xl bg-gradient-to-r from-slate-50 to-slate-100/50 border border-slate-100">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-emerald-500" />
@@ -137,7 +172,7 @@ const ExchangeWidget = () => {
               </div>
               <div className="flex items-center gap-1.5 text-xs text-slate-400">
                 <Zap className="w-3.5 h-3.5" />
-                <span>~30s</span>
+                <span className="font-mono font-semibold">{countdown}s</span>
               </div>
             </div>
 
@@ -169,7 +204,7 @@ const ExchangeWidget = () => {
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       <span className="text-slate-300 text-3xl font-semibold">
                         {direction === "buy" ? "R$" : ""}
@@ -177,7 +212,8 @@ const ExchangeWidget = () => {
                       <input
                         ref={inputRef}
                         type="text"
-                        value={formatBRL((numericAmount * 100).toString())}
+                        inputMode="decimal"
+                        value={amount}
                         onChange={handleAmountChange}
                         placeholder="0,00"
                         className="w-full bg-transparent text-4xl font-bold text-slate-900 outline-none placeholder:text-slate-200"
@@ -215,14 +251,11 @@ const ExchangeWidget = () => {
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       {direction === "sell" && <span className="text-slate-300 text-3xl font-semibold">R$</span>}
                       <span className="text-4xl font-bold text-slate-900">
-                        {convertedAmount.toLocaleString(direction === "buy" ? "en-US" : "pt-BR", { 
-                          minimumFractionDigits: 2, 
-                          maximumFractionDigits: 2 
-                        })}
+                        {formatBRL(convertedAmount)}
                       </span>
                       <span className="text-slate-400 font-semibold text-lg">
                         {direction === "buy" ? "USDT" : ""}
@@ -269,7 +302,7 @@ const ExchangeWidget = () => {
                 <div className="absolute inset-0 bg-gradient-to-br from-slate-50/80 via-white to-primary/[0.02] pointer-events-none" />
                 <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-primary/8 to-primary/5 blur-3xl rounded-full translate-x-10 -translate-y-10 pointer-events-none" />
                 <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-emerald-400/8 to-primary/5 blur-3xl rounded-full -translate-x-10 translate-y-10 pointer-events-none" />
-                
+
                 <div className="relative p-6 sm:p-7 h-full flex flex-col">
                   {/* Back button */}
                   <button
@@ -318,11 +351,11 @@ const ExchangeWidget = () => {
                         <span className="text-slate-500">Sua conversão:</span>
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-slate-700">
-                            {direction === "buy" ? "R$" : ""}{numericAmount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} {direction === "sell" ? "USDT" : ""}
+                            {direction === "buy" ? "R$" : ""}{formatBRL(numericAmount)} {direction === "sell" ? "USDT" : ""}
                           </span>
                           <span className="text-slate-400">→</span>
                           <span className="font-bold text-primary">
-                            {direction === "sell" ? "R$" : ""}{convertedAmount.toLocaleString(direction === "buy" ? "en-US" : "pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {direction === "buy" ? "USDT" : ""}
+                            {direction === "sell" ? "R$" : ""}{formatBRL(convertedAmount)} {direction === "buy" ? "USDT" : ""}
                           </span>
                         </div>
                       </div>

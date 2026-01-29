@@ -13,10 +13,12 @@ const ExchangeWidgetMobile = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [direction, setDirection] = useState<"buy" | "sell">("buy");
   const [showRateUpdate, setShowRateUpdate] = useState(false);
+  const [countdown, setCountdown] = useState(30);
   const prevRateRef = useRef(rate);
   const router = useRouter();
   const { user } = useAuth();
 
+  // Fetch rate from OKX API
   useEffect(() => {
     const fetchRate = async () => {
       try {
@@ -24,13 +26,14 @@ const ExchangeWidgetMobile = () => {
         const data = await response.json();
         if (data.code === "0" && data.data?.[0]?.last) {
           const baseRate = parseFloat(data.data[0].last);
-          const newRate = baseRate * 1.0098;
+          const newRate = baseRate * 1.0098; // Apply spread
           if (Math.abs(newRate - prevRateRef.current) > 0.01) {
             setShowRateUpdate(true);
             setTimeout(() => setShowRateUpdate(false), 2000);
           }
           prevRateRef.current = newRate;
           setRate(newRate);
+          setCountdown(30); // Reset countdown when rate updates
         }
       } catch (error) {
         console.error("Failed to fetch OKX rate:", error);
@@ -40,28 +43,60 @@ const ExchangeWidgetMobile = () => {
     };
 
     fetchRate();
-    const interval = setInterval(fetchRate, 10000);
+    const interval = setInterval(fetchRate, 30000); // Fetch every 30 seconds
     return () => clearInterval(interval);
   }, []);
 
-  const numericAmount = parseFloat(amount.replace(/[^\d.]/g, "")) || 0;
+  // Countdown timer that ticks every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          return 30; // Reset to 30 when it reaches 0
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const numericAmount = parseFloat(amount) || 0;
   const convertedAmount = direction === "buy" ? numericAmount / rate : numericAmount * rate;
 
-  const formatBRL = (value: string) => {
-    const num = value.replace(/[^\d]/g, "");
-    if (!num) return "";
-    const formatted = (parseInt(num) / 100).toLocaleString("pt-BR", {
+  const formatBRL = (value: number): string => {
+    return value.toLocaleString("pt-BR", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
-    return formatted;
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/[^\d]/g, "");
-    if (raw.length <= 10) {
-      setAmount(raw ? (parseInt(raw) / 100).toString() : "");
+    const value = e.target.value;
+
+    // Remove all non-numeric characters except dots and commas
+    const cleaned = value.replace(/[^\d.,]/g, '');
+
+    // Replace comma with dot for decimal
+    const normalized = cleaned.replace(',', '.');
+
+    // Ensure only one decimal point
+    const parts = normalized.split('.');
+    if (parts.length > 2) {
+      return; // Ignore if more than one decimal point
     }
+
+    // Limit to 2 decimal places
+    if (parts[1] && parts[1].length > 2) {
+      return;
+    }
+
+    // Limit total length to prevent huge numbers
+    if (normalized.replace('.', '').length > 12) {
+      return;
+    }
+
+    setAmount(normalized);
   };
 
   const toggleDirection = () => {
@@ -111,14 +146,14 @@ const ExchangeWidgetMobile = () => {
               <p className="text-[11px] text-white/40 font-medium">Câmbio Instantâneo</p>
             </div>
           </div>
-          <motion.div 
+          <motion.div
             animate={showRateUpdate ? { scale: [1, 1.1, 1] } : {}}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20"
           >
-            <motion.div 
+            <motion.div
               animate={{ scale: [1, 1.3, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
-              className="w-2 h-2 rounded-full bg-emerald-400" 
+              className="w-2 h-2 rounded-full bg-emerald-400"
             />
             <span className="text-[11px] font-bold text-emerald-400">
               {isLoading ? "..." : "LIVE"}
@@ -135,7 +170,7 @@ const ExchangeWidgetMobile = () => {
           </div>
           <div className="flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5 text-white/30" />
-            <span className="text-[11px] text-white/40">~30s</span>
+            <span className="text-[11px] text-white/40 font-mono font-semibold">{countdown}s</span>
           </div>
         </div>
 
@@ -167,14 +202,15 @@ const ExchangeWidgetMobile = () => {
                   )}
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-white/30 text-3xl font-medium">
                   {direction === "buy" ? "R$" : ""}
                 </span>
                 <input
                   type="text"
-                  value={formatBRL((numericAmount * 100).toString())}
+                  inputMode="decimal"
+                  value={amount}
                   onChange={handleAmountChange}
                   placeholder="0,00"
                   className="w-full bg-transparent text-4xl font-bold text-white outline-none placeholder:text-white/20"
@@ -228,7 +264,7 @@ const ExchangeWidgetMobile = () => {
                   )}
                 </div>
               </div>
-              
+
               <motion.div
                 animate={isAnimating ? { scale: [1, 1.02, 1] } : {}}
                 transition={{ duration: 0.3 }}
@@ -236,10 +272,7 @@ const ExchangeWidgetMobile = () => {
               >
                 {direction === "sell" && <span className="text-white/30 text-3xl font-medium">R$</span>}
                 <span className="text-4xl font-bold text-white">
-                  {convertedAmount.toLocaleString(direction === "buy" ? "en-US" : "pt-BR", { 
-                    minimumFractionDigits: 2, 
-                    maximumFractionDigits: 2 
-                  })}
+                  {formatBRL(convertedAmount)}
                 </span>
                 <span className="text-white/40 font-medium text-base">
                   {direction === "buy" ? "USDT" : ""}
