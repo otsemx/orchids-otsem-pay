@@ -341,31 +341,31 @@ function RegisterPageInner(): React.JSX.Element {
                 </Link>
             </div>
 
-            <div className="flex min-h-screen w-full items-center justify-center px-4 py-20 sm:py-24 lg:px-8 xl:px-16">
-                <div className="flex w-full max-w-6xl items-center gap-16">
-                    <div className="hidden lg:flex lg:flex-1 lg:flex-col lg:gap-8">
+            <div className="flex min-h-screen w-full items-center justify-center px-4 py-12 sm:py-16 lg:px-8 xl:px-16">
+                <div className="flex w-full max-w-6xl items-center gap-12 xl:gap-16">
+                    <div className="hidden lg:flex lg:flex-1 lg:flex-col lg:gap-6 lg:self-start lg:pt-16">
                         <div>
-                            <h1 className="text-4xl font-black text-slate-900 xl:text-5xl tracking-tightest">
+                            <h1 className="text-3xl xl:text-4xl font-black text-slate-900 tracking-tightest leading-tight">
                                 Crie sua conta
                             </h1>
-                            <p className="mt-4 text-lg text-slate-500 font-medium">
+                            <p className="mt-2 text-sm xl:text-base text-slate-500 font-medium">
                                 Cadastre-se para começar a operar.
                             </p>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                             <FeatureItem
-                                icon={<CheckCircle2 className="h-5 w-5 text-emerald-500" />}
+                                icon={<CheckCircle2 className="h-4 w-4 xl:h-5 xl:w-5 text-emerald-500" />}
                                 title="Registro rápido"
                                 desc="Valide seu documento e comece a operar"
                             />
                             <FeatureItem
-                                icon={<Zap className="h-5 w-5 text-yellow-500" />}
+                                icon={<Zap className="h-4 w-4 xl:h-5 xl:w-5 text-yellow-500" />}
                                 title="Limites progressivos"
                                 desc="Aumente seus limites quando precisar"
                             />
                             <FeatureItem
-                                icon={<Globe2 className="h-5 w-5 text-primary" />}
+                                icon={<Globe2 className="h-4 w-4 xl:h-5 xl:w-5 text-primary" />}
                                 title="Sem fronteiras"
                                 desc="Opere de qualquer lugar"
                             />
@@ -374,31 +374,31 @@ function RegisterPageInner(): React.JSX.Element {
 
                     <div className="w-full lg:flex-1 lg:max-w-md">
                         <Card className="overflow-hidden rounded-3xl sm:rounded-[2.5rem] border-white/40 rich-glass">
-                            <CardHeader className="space-y-2 sm:space-y-3 border-b border-black/[0.03] pb-4 sm:pb-6 pt-6">
-                                <div className="mx-auto flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center overflow-hidden">
+                            <CardHeader className="space-y-2 border-b border-black/[0.03] pb-3.5 sm:pb-4 pt-4 sm:pt-5">
+                                <div className="mx-auto flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center overflow-hidden">
                                     <img
                                         src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/project-uploads/8dca9fc2-17fe-42a1-b323-5e4a298d9904/Untitled-1769589355434.png?width=8000&height=8000&resize=contain"
                                         alt="Otsem Pay"
                                         className="h-full w-full object-contain"
                                     />
                                 </div>
-                                <CardTitle className="text-center text-xl sm:text-2xl font-black text-slate-900">
+                                <CardTitle className="text-center text-lg sm:text-xl font-black text-slate-900">
                                     Criar conta
                                 </CardTitle>
-                                <p className="text-center text-xs sm:text-sm text-slate-500 font-medium">
+                                <p className="text-center text-xs text-slate-500 font-medium">
                                     Preencha os dados para comecar
                                 </p>
                             </CardHeader>
 
-                            <CardContent className="p-4 sm:p-6 md:p-8">
-                                <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-3.5 sm:gap-4" noValidate>
+                            <CardContent className="p-4 sm:p-5 md:p-6">
+                                <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-3 sm:gap-3.5" noValidate>
 
                                     {/* Customer Type Selection */}
-                                    <div className="grid gap-2">
+                                    <div className="grid gap-1.5">
                                         <Label className="text-xs sm:text-sm font-black text-slate-900">
                                             Tipo de cadastro
                                         </Label>
-                                        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                                        <div className="grid grid-cols-2 gap-2">
                                             <label className={`flex items-center gap-2 sm:gap-3 rounded-xl sm:rounded-2xl border p-3 sm:p-4 cursor-pointer transition ${
                                                 customerType === "PF"
                                                     ? "border-primary bg-primary/5"
@@ -441,45 +441,48 @@ function RegisterPageInner(): React.JSX.Element {
                                         )}
                                     </div>
 
-                                    {/* Full Name */}
-                                    <div className="grid gap-1.5 sm:gap-2">
-                                        <Label htmlFor="name" className="text-xs sm:text-sm font-black text-slate-900">
-                                            Nome completo
-                                        </Label>
-                                        <div className="relative">
-                                            <User className="pointer-events-none absolute left-3 sm:left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                                            <Input
-                                                id="name"
-                                                className="h-11 sm:h-12 rounded-xl sm:rounded-2xl border-black/[0.05] bg-white/60 pl-9 sm:pl-10 pr-3 text-sm sm:text-base text-slate-900 placeholder:text-slate-500 transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                                                placeholder="Seu nome completo"
-                                                {...form.register("name")}
-                                            />
+                                    {/* Name and Age Row - 2 columns on desktop */}
+                                    <div className="grid grid-cols-1 md:grid-cols-[1fr,140px] gap-3">
+                                        {/* Full Name */}
+                                        <div className="grid gap-1.5">
+                                            <Label htmlFor="name" className="text-xs sm:text-sm font-black text-slate-900">
+                                                Nome completo
+                                            </Label>
+                                            <div className="relative">
+                                                <User className="pointer-events-none absolute left-3 sm:left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                                                <Input
+                                                    id="name"
+                                                    className="h-11 sm:h-12 rounded-xl sm:rounded-2xl border-black/[0.05] bg-white/60 pl-9 sm:pl-10 pr-3 text-sm sm:text-base text-slate-900 placeholder:text-slate-500 transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                                    placeholder="Seu nome completo"
+                                                    {...form.register("name")}
+                                                />
+                                            </div>
+                                            {form.formState.errors.name && (
+                                                <p className="text-xs text-red-500 font-medium">{form.formState.errors.name.message}</p>
+                                            )}
                                         </div>
-                                        {form.formState.errors.name && (
-                                            <p className="text-xs text-red-500 font-medium">{form.formState.errors.name.message}</p>
-                                        )}
-                                    </div>
 
-                                    {/* Age */}
-                                    <div className="grid gap-1.5 sm:gap-2">
-                                        <Label htmlFor="age" className="text-xs sm:text-sm font-black text-slate-900">
-                                            Idade
-                                        </Label>
-                                        <div className="relative">
-                                            <Calendar className="pointer-events-none absolute left-3 sm:left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                                            <Input
-                                                id="age"
-                                                type="number"
-                                                min="18"
-                                                max="120"
-                                                className="h-11 sm:h-12 rounded-xl sm:rounded-2xl border-black/[0.05] bg-white/60 pl-9 sm:pl-10 pr-3 text-sm sm:text-base text-slate-900 placeholder:text-slate-500 transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                                                placeholder="Sua idade"
-                                                {...form.register("age")}
-                                            />
+                                        {/* Age */}
+                                        <div className="grid gap-1.5">
+                                            <Label htmlFor="age" className="text-xs sm:text-sm font-black text-slate-900">
+                                                Idade
+                                            </Label>
+                                            <div className="relative">
+                                                <Calendar className="pointer-events-none absolute left-3 sm:left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                                                <Input
+                                                    id="age"
+                                                    type="number"
+                                                    min="18"
+                                                    max="120"
+                                                    className="h-11 sm:h-12 rounded-xl sm:rounded-2xl border-black/[0.05] bg-white/60 pl-9 sm:pl-10 pr-3 text-sm sm:text-base text-slate-900 placeholder:text-slate-500 transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                                    placeholder="Sua idade"
+                                                    {...form.register("age")}
+                                                />
+                                            </div>
+                                            {form.formState.errors.age && (
+                                                <p className="text-xs text-red-500 font-medium">{form.formState.errors.age.message}</p>
+                                            )}
                                         </div>
-                                        {form.formState.errors.age && (
-                                            <p className="text-xs text-red-500 font-medium">{form.formState.errors.age.message}</p>
-                                        )}
                                     </div>
 
                                     {/* CPF Field (only for PF) */}
@@ -556,90 +559,93 @@ function RegisterPageInner(): React.JSX.Element {
                                         )}
                                     </div>
 
-                                    <div className="grid gap-1.5 sm:gap-2">
-                                        <Label htmlFor="password" className="text-xs sm:text-sm font-black text-slate-900">
-                                            Senha
-                                        </Label>
-                                        <div className="relative">
-                                            <Lock className="pointer-events-none absolute left-3 sm:left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                                            <Input
-                                                id="password"
-                                                type={showPw ? "text" : "password"}
-                                                autoComplete="new-password"
-                                                className="h-11 sm:h-12 rounded-xl sm:rounded-2xl border-black/[0.05] bg-white/60 pl-9 sm:pl-10 pr-10 sm:pr-11 text-sm sm:text-base text-slate-900 placeholder:text-slate-500 transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                                                placeholder="Minimo 8 caracteres"
-                                                {...form.register("password")}
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowPw((v) => !v)}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-900 p-1 touch-manipulation"
-                                                aria-label={showPw ? "Ocultar senha" : "Mostrar senha"}
-                                            >
-                                                {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                            </button>
-                                        </div>
-
-                                        {pw && (
-                                            <div className="mt-1 sm:mt-1.5">
-                                                <div className="flex gap-1">
-                                                    {[0, 1, 2, 3].map((i) => (
-                                                        <div
-                                                            key={i}
-                                                            className={`h-1 sm:h-1.5 flex-1 rounded-full transition-all ${i <= score
-                                                                ? score <= 1
-                                                                    ? "bg-red-500"
-                                                                    : score === 2
-                                                                        ? "bg-yellow-500"
-                                                                        : "bg-emerald-500"
-                                                                : "bg-black/[0.05]"
-                                                                }`}
-                                                        />
-                                                    ))}
-                                                </div>
-                                                <p className="mt-1 sm:mt-1.5 text-[10px] sm:text-xs text-slate-500">
-                                                    Forca:{" "}
-                                                    <span
-                                                        className={`font-bold ${score <= 1 ? "text-red-500" : score === 2 ? "text-yellow-500" : "text-emerald-500"}`}
-                                                    >
-                                                        {scoreText}
-                                                    </span>
-                                                </p>
+                                    {/* Password Fields - 2 columns on desktop */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <div className="grid gap-1.5">
+                                            <Label htmlFor="password" className="text-xs sm:text-sm font-black text-slate-900">
+                                                Senha
+                                            </Label>
+                                            <div className="relative">
+                                                <Lock className="pointer-events-none absolute left-3 sm:left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                                                <Input
+                                                    id="password"
+                                                    type={showPw ? "text" : "password"}
+                                                    autoComplete="new-password"
+                                                    className="h-11 sm:h-12 rounded-xl sm:rounded-2xl border-black/[0.05] bg-white/60 pl-9 sm:pl-10 pr-10 sm:pr-11 text-sm sm:text-base text-slate-900 placeholder:text-slate-500 transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                                    placeholder="Minimo 8 caracteres"
+                                                    {...form.register("password")}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPw((v) => !v)}
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-900 p-1 touch-manipulation"
+                                                    aria-label={showPw ? "Ocultar senha" : "Mostrar senha"}
+                                                >
+                                                    {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                </button>
                                             </div>
-                                        )}
-
-                                        {form.formState.errors.password && (
-                                            <p className="text-xs text-red-500 font-medium">{form.formState.errors.password.message}</p>
-                                        )}
-                                    </div>
-
-                                    <div className="grid gap-1.5 sm:gap-2">
-                                        <Label htmlFor="confirm" className="text-xs sm:text-sm font-black text-slate-900">
-                                            Confirmar senha
-                                        </Label>
-                                        <div className="relative">
-                                            <Lock className="pointer-events-none absolute left-3 sm:left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                                            <Input
-                                                id="confirm"
-                                                type={showConfirm ? "text" : "password"}
-                                                autoComplete="new-password"
-                                                className="h-11 sm:h-12 rounded-xl sm:rounded-2xl border-black/[0.05] bg-white/60 pl-9 sm:pl-10 pr-10 sm:pr-11 text-sm sm:text-base text-slate-900 placeholder:text-slate-500 transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                                                placeholder="Repita a senha"
-                                                {...form.register("confirm")}
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowConfirm((v) => !v)}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-900 p-1 touch-manipulation"
-                                                aria-label={showConfirm ? "Ocultar confirmação" : "Mostrar confirmação"}
-                                            >
-                                                {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                            </button>
+                                            {form.formState.errors.password && (
+                                                <p className="text-xs text-red-500 font-medium">{form.formState.errors.password.message}</p>
+                                            )}
                                         </div>
-                                        {form.formState.errors.confirm && (
-                                            <p className="text-xs text-red-500 font-medium">{form.formState.errors.confirm.message}</p>
-                                        )}
+
+                                        <div className="grid gap-1.5">
+                                            <Label htmlFor="confirm" className="text-xs sm:text-sm font-black text-slate-900">
+                                                Confirmar senha
+                                            </Label>
+                                            <div className="relative">
+                                                <Lock className="pointer-events-none absolute left-3 sm:left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                                                <Input
+                                                    id="confirm"
+                                                    type={showConfirm ? "text" : "password"}
+                                                    autoComplete="new-password"
+                                                    className="h-11 sm:h-12 rounded-xl sm:rounded-2xl border-black/[0.05] bg-white/60 pl-9 sm:pl-10 pr-10 sm:pr-11 text-sm sm:text-base text-slate-900 placeholder:text-slate-500 transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                                    placeholder="Repita a senha"
+                                                    {...form.register("confirm")}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowConfirm((v) => !v)}
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-900 p-1 touch-manipulation"
+                                                    aria-label={showConfirm ? "Ocultar confirmação" : "Mostrar confirmação"}
+                                                >
+                                                    {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                </button>
+                                            </div>
+                                            {form.formState.errors.confirm && (
+                                                <p className="text-xs text-red-500 font-medium">{form.formState.errors.confirm.message}</p>
+                                            )}
+                                        </div>
                                     </div>
+
+                                    {/* Password strength indicator */}
+                                    {pw && (
+                                        <div className="mt-[-0.5rem]">
+                                            <div className="flex gap-1">
+                                                {[0, 1, 2, 3].map((i) => (
+                                                    <div
+                                                        key={i}
+                                                        className={`h-1 sm:h-1.5 flex-1 rounded-full transition-all ${i <= score
+                                                            ? score <= 1
+                                                                ? "bg-red-500"
+                                                                : score === 2
+                                                                    ? "bg-yellow-500"
+                                                                    : "bg-emerald-500"
+                                                            : "bg-black/[0.05]"
+                                                            }`}
+                                                    />
+                                                ))}
+                                            </div>
+                                            <p className="mt-1 text-[10px] sm:text-xs text-slate-500">
+                                                Forca:{" "}
+                                                <span
+                                                    className={`font-bold ${score <= 1 ? "text-red-500" : score === 2 ? "text-yellow-500" : "text-emerald-500"}`}
+                                                >
+                                                    {scoreText}
+                                                </span>
+                                            </p>
+                                        </div>
+                                    )}
 
                                     <label className="flex items-start gap-2.5 sm:gap-3 rounded-xl sm:rounded-2xl border border-black/[0.05] bg-white/60 p-2.5 sm:p-3 text-xs sm:text-sm transition hover:bg-white/80 cursor-pointer">
                                         <input
@@ -753,13 +759,13 @@ function RegisterPageInner(): React.JSX.Element {
 
 function FeatureItem({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
     return (
-        <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/60 border border-black/[0.05] shadow-sm">
+        <div className="flex items-start gap-2.5">
+            <div className="flex h-8 w-8 xl:h-9 xl:w-9 shrink-0 items-center justify-center rounded-xl xl:rounded-2xl bg-white/60 border border-black/[0.05] shadow-sm">
                 {icon}
             </div>
             <div>
-                <h3 className="text-sm font-black text-slate-900">{title}</h3>
-                <p className="text-sm text-slate-500 font-medium">{desc}</p>
+                <h3 className="text-xs xl:text-sm font-black text-slate-900">{title}</h3>
+                <p className="text-xs xl:text-sm text-slate-500 font-medium leading-snug">{desc}</p>
             </div>
         </div>
     );
