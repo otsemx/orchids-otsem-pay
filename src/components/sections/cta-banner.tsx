@@ -35,7 +35,7 @@ const CTABanner = () => {
               </h2>
 
             <p className="max-w-md mx-auto text-[13px] sm:text-[14px] text-white/75 leading-relaxed font-medium mb-6">
-              Crie sua conta gratuitamente e comece a transacionar BRL e USDT em minutos.
+              Crie sua conta e comece a transacionar BRL e USDT em minutos. Pague as despesas da sua empresa direto do saldo em dólar digital. Sem conversões manuais. Sem D+1.
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 mb-6">
