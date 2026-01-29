@@ -73,19 +73,18 @@ export function DepositModal() {
 
         try {
             const valorDecimal = Number((cents / 100).toFixed(2));
-            
-            const res = await http.post<CobrancaResponse>("/pix/transactions/qr/static", {
-                accountHolderId: customerId,
-                amount: valorDecimal,
-                description: `Depósito via PIX - ${formatCurrency(cents)}`
+
+            const res = await http.post<any>("/inter/pix/cobrancas", {
+                customerId: customerId,
+                valor: valorDecimal,
+                descricao: `Depósito via PIX - ${formatCurrency(cents)}`,
+                expiracao: 86400 // 24 horas em segundos
             });
 
-            const pixCode = res.data.qrCode;
+            const pixCode = res.data.pixCopiaECola;
             setPixCopiaECola(pixCode);
 
-            if (res.data.qrCodeImage) {
-                setQrCodeUrl(res.data.qrCodeImage);
-            } else if (pixCode) {
+            if (pixCode) {
                 const url = await QRCode.toDataURL(pixCode, {
                     width: 240,
                     margin: 2,

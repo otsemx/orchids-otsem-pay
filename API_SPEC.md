@@ -597,26 +597,43 @@ Content-Type: application/json
 
 ---
 
-### Gerar QR Code Pix Estático
+### Gerar QR Code Pix (Cobrança)
 
 ```http
-POST /pix/transactions/qr/static
+POST /inter/pix/cobrancas
 Authorization: Bearer <access_token>
 Content-Type: application/json
 
 {
-  "accountHolderId": "BRX_CLI_abc123xyz",
-  "amount": 50.00,
-  "description": "Cobrança #123"
+  "customerId": "550e8400-e29b-41d4-a716-446655440000",
+  "valor": 50.00,
+  "descricao": "Depósito via PIX",
+  "expiracao": 86400
 }
 ```
+
+**Parâmetros:**
+- `customerId` (string, opcional): ID do customer. Se não informado, usa o do token JWT
+- `valor` (number, opcional): Valor da cobrança. Se não informado, gera QR Code com valor aberto
+- `descricao` (string, opcional): Descrição da cobrança
+- `expiracao` (number, opcional): Tempo de expiração em segundos (padrão: 3600 = 1 hora)
 
 **Response 201:**
 ```json
 {
-  "qrCode": "00020126580014br.gov.bcb.pix...",
-  "qrCodeImage": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
-  "expiresAt": "2025-11-12T18:00:00Z"
+  "txid": "OTSEM572AAC8C949E40D58B876CC164E9000",
+  "calendario": {
+    "criacao": "2025-11-12T14:30:00.000Z",
+    "expiracao": 86400
+  },
+  "valor": {
+    "original": "50.00"
+  },
+  "chave": "12345678901",
+  "status": "ATIVA",
+  "pixCopiaECola": "00020126580014br.gov.bcb.pix...",
+  "customerId": "550e8400-e29b-41d4-a716-446655440000",
+  "message": "Cobrança criada. Quando paga, o valor será creditado automaticamente."
 }
 ```
 
